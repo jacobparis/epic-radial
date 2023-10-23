@@ -8,9 +8,12 @@ import {
 } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
+
 import { Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
+
+import { IssuesTable } from './IssuesTable.tsx'
 
 const createIssueSchema = z.object({
 	title: z.string().nonempty(),
@@ -46,7 +49,16 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const issues = await prisma.issue.findMany()
+	const issues = await prisma.issue.findMany({
+		select: {
+			id: true,
+			title: true,
+			description: true,
+			status: true,
+			priority: true,
+			createdAt: true,
+		},
+	})
 
 	return json({ issues })
 }
@@ -55,35 +67,33 @@ export default function Dashboard() {
 	const { issues } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="mx-auto min-h-full max-w-4xl border-x border-neutral-200 p-4">
+		<div className="mx-auto min-h-full max-w-4xl border-x border-neutral-200">
 			<div>
-				<ul className="list-inside list-disc">
-					{issues.map(issue => (
-						<li key={issue.id}>{issue.title}</li>
-					))}
-				</ul>
+				<IssuesTable data={issues} />
 			</div>
 
-			<Form method="POST">
-				<Field
-					labelProps={{ children: 'Title ' }}
-					inputProps={{
-						type: 'text',
-						name: 'title',
-						required: true,
-					}}
-				/>
+			<div className="px-4 py-6">
+				<Form method="POST">
+					<Field
+						labelProps={{ children: 'Title ' }}
+						inputProps={{
+							type: 'text',
+							name: 'title',
+							required: true,
+						}}
+					/>
 
-				<Field
-					labelProps={{ children: 'Description ' }}
-					inputProps={{
-						type: 'text',
-						name: 'description',
-					}}
-				/>
+					<Field
+						labelProps={{ children: 'Description ' }}
+						inputProps={{
+							type: 'text',
+							name: 'description',
+						}}
+					/>
 
-				<Button type="submit">Submit</Button>
-			</Form>
+					<Button type="submit">Submit</Button>
+				</Form>
+			</div>
 		</div>
 	)
 }
