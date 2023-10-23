@@ -9,8 +9,9 @@ import {
 import { Form, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 
-import { Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
+import { Input } from '#app/components/ui/input.tsx'
+import { Textarea } from '#app/components/ui/textarea.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 
 import { IssuesTable } from './IssuesTable.tsx'
@@ -67,32 +68,35 @@ export default function Dashboard() {
 	const { issues } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="mx-auto min-h-full max-w-4xl border-x border-neutral-200">
-			<div>
+		<div className="mx-auto min-h-full max-w-4xl ">
+			<div className="border-x border-neutral-200">
 				<IssuesTable data={issues} />
 			</div>
 
 			<div className="px-4 py-6">
-				<Form method="POST">
-					<Field
-						labelProps={{ children: 'Title ' }}
-						inputProps={{
-							type: 'text',
-							name: 'title',
-							required: true,
-						}}
-					/>
+				<div className="rounded-xl border px-2 py-2 shadow-sm">
+					<Form method="POST">
+						<Input
+							aria-label="Title"
+							type="text"
+							name="title"
+							required
+							className="border-none bg-transparent text-lg font-medium placeholder:text-gray-400"
+							placeholder="Issue title"
+						/>
 
-					<Field
-						labelProps={{ children: 'Description ' }}
-						inputProps={{
-							type: 'text',
-							name: 'description',
-						}}
-					/>
+						<Textarea
+							aria-label="Description"
+							name="description"
+							placeholder="Add a description…"
+							className="mt-2 border-none bg-transparent placeholder:text-gray-400"
+						/>
 
-					<Button type="submit">Submit</Button>
-				</Form>
+						<div className="mt-4 flex justify-end">
+							<Button type="submit">Save</Button>
+						</div>
+					</Form>
+				</div>
 			</div>
 		</div>
 	)
