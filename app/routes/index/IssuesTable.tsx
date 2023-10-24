@@ -1,4 +1,6 @@
 import { type Issue } from '@prisma/client'
+import { type SerializeFrom } from '@remix-run/node'
+import { Link, useNavigate } from '@remix-run/react'
 import {
 	type ColumnDef,
 	flexRender,
@@ -14,7 +16,7 @@ import {
 	TableRow,
 } from '#app/components/ui/table.tsx'
 
-type IssueRow = Pick<Issue, 'id' | 'title' | 'createdAt'>
+type IssueRow = Pick<SerializeFrom<Issue>, 'id' | 'title' | 'createdAt'>
 
 export const columns: Array<ColumnDef<IssueRow>> = [
 	{
@@ -24,7 +26,12 @@ export const columns: Array<ColumnDef<IssueRow>> = [
 			const idString = String(row.original.id).padStart(3, '0')
 
 			return (
-				<div className="min-w-[4rem] px-4 text-neutral-600">{idString}</div>
+				<Link
+					to={`/issues/${row.original.id}`}
+					className="min-w-[4rem] px-4 text-neutral-600"
+				>
+					{idString}
+				</Link>
 			)
 		},
 	},
@@ -70,6 +77,8 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 		getCoreRowModel: getCoreRowModel(),
 	})
 
+	const navigate = useNavigate()
+
 	return (
 		<div className=" text-left">
 			<Table>
@@ -108,6 +117,9 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 							<TableRow
 								key={row.id}
 								data-state={row.getIsSelected() && 'selected'}
+								onClick={() => {
+									navigate(`/issues/${row.original.id}`)
+								}}
 							>
 								{row.getVisibleCells().map(cell => (
 									<TableCell key={cell.id}>
