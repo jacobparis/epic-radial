@@ -44,7 +44,7 @@ module.exports = {
 			excludedFiles: testFiles,
 			rules: {
 				'remix-react-routes/use-link-for-routes': 'error',
-				'remix-react-routes/require-valid-paths': 'error',
+				'remix-react-routes/require-valid-paths': 'off',
 				// disable this one because it doesn't appear to work with our
 				// route convention. Someone should dig deeper into this...
 				'remix-react-routes/no-relative-paths': [
