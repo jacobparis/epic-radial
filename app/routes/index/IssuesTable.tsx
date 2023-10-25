@@ -117,6 +117,7 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 							<TableRow
 								key={row.id}
 								data-state={row.getIsSelected() && 'selected'}
+								className="cursor-pointer hover:bg-neutral-100"
 								onClick={() => {
 									navigate(`/issues/${row.original.id}`)
 								}}
