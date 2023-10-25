@@ -5,11 +5,13 @@ const appFiles = ['app/**']
 /** @type {import('@types/eslint').Linter.BaseConfig} */
 module.exports = {
 	extends: [
+		'plugin:no-template-curly-in-string-fix/recommended',
 		'@remix-run/eslint-config',
 		'@remix-run/eslint-config/node',
 		'prettier',
 	],
 	rules: {
+		'no-template-curly-in-string': 'off',
 		// playwright requires destructuring in fixtures even if you don't use anything 🤷‍♂️
 		'no-empty-pattern': 'off',
 		'@typescript-eslint/consistent-type-imports': [
