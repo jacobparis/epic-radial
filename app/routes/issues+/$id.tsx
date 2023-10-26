@@ -1,12 +1,11 @@
 // http://localhost:3000/issues/1
 
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { Form, Link, useLoaderData } from '@remix-run/react'
+import { Link, Outlet, useLoaderData } from '@remix-run/react'
 
 import { Button } from '#app/components/ui/button.tsx'
+
 import { Icon } from '#app/components/ui/icon.tsx'
-import { Input } from '#app/components/ui/input.tsx'
-import { Textarea } from '#app/components/ui/textarea.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 
 import { invariant } from '#app/utils/misc.tsx'
@@ -20,11 +19,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
 		},
 		select: {
 			id: true,
-			title: true,
-			description: true,
-			status: true,
-			priority: true,
-			createdAt: true,
 		},
 	})
 
@@ -65,29 +59,7 @@ export default function Issue() {
 					</div>
 				</div>
 
-				<div className="mt-2 rounded-xl border px-2 py-2 shadow-sm">
-					<Form method="POST">
-						<Input
-							aria-label="Title"
-							type="text"
-							name="title"
-							required
-							disabled
-							className="border-none bg-transparent text-lg font-medium placeholder:text-gray-400"
-							defaultValue={issue.title}
-							placeholder="Issue title"
-						/>
-
-						<Textarea
-							aria-label="Description"
-							name="description"
-							disabled
-							placeholder="Add a description…"
-							className="mt-2 border-none bg-transparent placeholder:text-gray-400"
-							defaultValue={issue.description ?? undefined}
-						/>
-					</Form>
-				</div>
+				<Outlet />
 			</div>
 		</div>
 	)
