@@ -49,6 +49,7 @@ export default function Issue() {
 					}}
 					inputProps={{
 						defaultValue: issue.status ?? undefined,
+						name: 'status',
 					}}
 				>
 					<SelectGroup>
@@ -67,6 +68,7 @@ export default function Issue() {
 					}}
 					inputProps={{
 						defaultValue: issue.priority ?? undefined,
+						name: 'priority',
 					}}
 				>
 					<SelectGroup>
