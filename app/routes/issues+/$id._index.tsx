@@ -1,8 +1,14 @@
 // http://localhost:3000/issues/1
 
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { parse } from '@conform-to/zod'
+import {
+	json,
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
+} from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 
+import { z } from 'zod'
 import { SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Input } from '#app/components/ui/input.tsx'
@@ -11,6 +17,45 @@ import { Textarea } from '#app/components/ui/textarea.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 
 import { invariant } from '#app/utils/misc.tsx'
+
+const EditIssueSchema = z.object({
+	title: z.string().nonempty(),
+	description: z.string().optional(),
+	status: z.enum(['todo', 'in-progress', 'done']).optional(),
+	priority: z.enum(['low', 'medium', 'high']).optional(),
+})
+
+export async function action({ request, params }: ActionFunctionArgs) {
+	invariant(params.id, 'Missing issue ID')
+
+	const formData = await request.formData()
+	const submission = parse(formData, {
+		schema: EditIssueSchema,
+	})
+
+	if (submission.intent !== 'submit') {
+		// Conform does server-validation on blur, so if we don't stop it here it will actually submit the form
+		return json({ status: 'idle', submission } as const)
+	}
+
+	if (!submission.value) {
+		return json({ status: 'error', submission } as const, { status: 400 })
+	}
+
+	await prisma.issue.update({
+		where: {
+			id: Number(params.id),
+		},
+		data: {
+			title: submission.value.title,
+			description: submission.value.description,
+			status: submission.value.status,
+			priority: submission.value.priority,
+		},
+	})
+
+	return json({ success: true, submission })
+}
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	invariant(params.id, 'Missing issue ID')
@@ -87,7 +132,6 @@ export default function Issue() {
 					type="text"
 					name="title"
 					required
-					disabled
 					className="border-none bg-transparent text-lg font-medium placeholder:text-gray-400"
 					defaultValue={issue.title}
 					placeholder="Issue title"
@@ -96,7 +140,6 @@ export default function Issue() {
 				<Textarea
 					aria-label="Description"
 					name="description"
-					disabled
 					placeholder="Add a description…"
 					className="mt-2 border-none bg-transparent placeholder:text-gray-400"
 					defaultValue={issue.description ?? undefined}
