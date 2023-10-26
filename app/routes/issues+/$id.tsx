@@ -33,7 +33,7 @@ export default function Issue() {
 	const { issue } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="mx-auto min-h-full max-w-4xl ">
+		<div className="mx-auto min-h-full max-w-4xl" key={issue.id}>
 			<div className="px-4 py-6">
 				<div className="flex items-center justify-between">
 					<div>
