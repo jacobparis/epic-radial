@@ -1,15 +1,16 @@
 // http://localhost:3000/issues/1
 
-import { parse } from '@conform-to/zod'
+import { conform, useForm } from '@conform-to/react'
+import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
 	json,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 
 import { z } from 'zod'
-import { SelectField } from '#app/components/forms.tsx'
+import { ErrorList, SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Input } from '#app/components/ui/input.tsx'
 import { SelectGroup, SelectItem } from '#app/components/ui/select.tsx'
@@ -19,7 +20,7 @@ import { prisma } from '#app/utils/db.server.ts'
 import { invariant } from '#app/utils/misc.tsx'
 
 const EditIssueSchema = z.object({
-	title: z.string().nonempty(),
+	title: z.string({ required_error: 'Title is required' }).nonempty(),
 	description: z.string().optional(),
 	status: z.enum(['todo', 'in-progress', 'done']).optional(),
 	priority: z.enum(['low', 'medium', 'high']).optional(),
@@ -84,18 +85,34 @@ export async function loader({ params }: LoaderFunctionArgs) {
 export default function Issue() {
 	const { issue } = useLoaderData<typeof loader>()
 
+	const actionData = useActionData<typeof action>()
+
+	const [form, fields] = useForm({
+		id: 'edit-issue-form',
+		// Adds required, min, etc props to the fields based on the schema
+		constraint: getFieldsetConstraint(EditIssueSchema),
+		// Tells conform about any errors we've had
+		lastSubmission: actionData?.submission,
+		onValidate({ formData }) {
+			return parse(formData, { schema: EditIssueSchema })
+		},
+		defaultValue: {
+			title: issue.title,
+			description: issue.description ?? '',
+			status: issue.status ?? undefined,
+			priority: issue.priority ?? undefined,
+		},
+	})
+
 	return (
-		<Form method="POST">
+		<Form method="POST" {...form.props}>
 			<div className="mt-4 flex gap-x-2">
 				<SelectField
 					className="w-[200px]"
 					labelProps={{
 						children: 'Status',
 					}}
-					inputProps={{
-						defaultValue: issue.status ?? undefined,
-						name: 'status',
-					}}
+					inputProps={conform.input(fields.status)}
 				>
 					<SelectGroup>
 						{['todo', 'in-progress', 'done'].map(value => (
@@ -111,10 +128,7 @@ export default function Issue() {
 					labelProps={{
 						children: 'Priority',
 					}}
-					inputProps={{
-						defaultValue: issue.priority ?? undefined,
-						name: 'priority',
-					}}
+					inputProps={conform.input(fields.priority)}
 				>
 					<SelectGroup>
 						{['low', 'medium', 'high'].map(value => (
@@ -130,20 +144,26 @@ export default function Issue() {
 				<Input
 					aria-label="Title"
 					type="text"
-					name="title"
-					required
 					className="border-none bg-transparent text-lg font-medium placeholder:text-gray-400"
-					defaultValue={issue.title}
 					placeholder="Issue title"
+					{...conform.input(fields.title)}
 				/>
+				<div className="px-3">
+					<ErrorList errors={fields.title.errors} id={fields.title.errorId} />
+				</div>
 
 				<Textarea
 					aria-label="Description"
-					name="description"
 					placeholder="Add a description…"
 					className="mt-2 border-none bg-transparent placeholder:text-gray-400"
-					defaultValue={issue.description ?? undefined}
+					{...conform.input(fields.description)}
 				/>
+				<div className="px-3">
+					<ErrorList
+						errors={fields.description.errors}
+						id={fields.description.errorId}
+					/>
+				</div>
 			</div>
 
 			<div className="mt-4 flex justify-end gap-x-2">
