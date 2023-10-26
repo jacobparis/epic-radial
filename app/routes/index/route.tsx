@@ -16,7 +16,7 @@ import { prisma } from '#app/utils/db.server.ts'
 
 import { IssuesTable } from './IssuesTable.tsx'
 
-const createIssueSchema = z.object({
+const CreateIssueSchema = z.object({
 	title: z.string().nonempty(),
 	description: z.string().optional(),
 })
@@ -24,7 +24,7 @@ const createIssueSchema = z.object({
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	const submission = parse(formData, {
-		schema: createIssueSchema,
+		schema: CreateIssueSchema,
 	})
 
 	if (submission.intent !== 'submit') {
