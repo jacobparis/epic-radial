@@ -16,6 +16,7 @@ import { Input } from '#app/components/ui/input.tsx'
 import { Textarea } from '#app/components/ui/textarea.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 
+import { createToastHeaders } from '#app/utils/toast.server.ts'
 import { IssuesTable } from './IssuesTable.tsx'
 
 const CreateIssueSchema = z.object({
@@ -38,7 +39,7 @@ export async function action({ request }: ActionFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	await prisma.issue.create({
+	const newIssue = await prisma.issue.create({
 		data: {
 			title: submission.value.title,
 			description: submission.value.description,
@@ -48,15 +49,23 @@ export async function action({ request }: ActionFunctionArgs) {
 		},
 	})
 
-	return json({
-		success: true,
-		submission: {
-			...submission,
-			// When we send an empty payload, Conform resets the form to its default state
-			// Then we're ready to start on another issue
-			payload: null,
+	return json(
+		{
+			success: true,
+			submission: {
+				...submission,
+				// When we send an empty payload, Conform resets the form to its default state
+				// Then we're ready to start on another issue
+				payload: null,
+			},
 		},
-	})
+		{
+			headers: await createToastHeaders({
+				description: `Created issue ${String(newIssue.id).padStart(3, '0')} `,
+				type: 'success',
+			}),
+		},
+	)
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
