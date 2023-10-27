@@ -18,6 +18,7 @@ import { Textarea } from '#app/components/ui/textarea.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 
 import { invariant } from '#app/utils/misc.tsx'
+import { redirectWithToast } from '#app/utils/toast.server.ts'
 
 const EditIssueSchema = z.object({
 	title: z.string({ required_error: 'Title is required' }).nonempty(),
@@ -38,19 +39,36 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	await prisma.issue.update({
-		where: {
-			id: Number(params.id),
-		},
-		data: {
-			title: submission.value.title,
-			description: submission.value.description,
-			status: submission.value.status,
-			priority: submission.value.priority,
-		},
-	})
+	if (submission.intent === 'edit') {
+		await prisma.issue.update({
+			where: {
+				id: Number(params.id),
+			},
+			data: {
+				title: submission.value.title,
+				description: submission.value.description,
+				status: submission.value.status,
+				priority: submission.value.priority,
+			},
+		})
 
-	return json({ success: true, submission })
+		return json({ success: true, submission })
+	}
+
+	if (submission.intent === 'delete') {
+		await prisma.issue.delete({
+			where: {
+				id: Number(params.id),
+			},
+		})
+
+		return redirectWithToast('/', {
+			description: `Deleted issue ${String(params.id).padStart(3, '0')} `,
+			type: 'success',
+		})
+	}
+
+	throw new Error(`Method not implemented ${submission.intent satisfies never}`)
 }
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -162,7 +180,18 @@ export default function Issue() {
 			</div>
 
 			<div className="mt-4 flex justify-end gap-x-2">
-				<Button type="submit">Save</Button>
+				<Button
+					type="submit"
+					name={conform.INTENT}
+					value="delete"
+					variant="outline"
+				>
+					Delete
+				</Button>
+
+				<Button type="submit" name={conform.INTENT} value="edit">
+					Save
+				</Button>
 			</div>
 		</Form>
 	)
