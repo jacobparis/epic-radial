@@ -34,11 +34,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		schema: EditIssueSchema,
 	})
 
-	if (submission.intent !== 'submit') {
-		// Conform does server-validation on blur, so if we don't stop it here it will actually submit the form
-		return json({ status: 'idle', submission } as const)
-	}
-
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
