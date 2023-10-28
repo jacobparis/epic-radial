@@ -7,6 +7,9 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+import clsx from 'clsx'
+import { Button } from '#app/components/ui/button.tsx'
+import { Checkbox } from '#app/components/ui/checkbox.tsx'
 import {
 	Table,
 	TableBody,
@@ -15,10 +18,24 @@ import {
 	TableHeader,
 	TableRow,
 } from '#app/components/ui/table.tsx'
+import { useBulkDeleteIssues } from '../issues+/delete.tsx'
 
 type IssueRow = Pick<SerializeFrom<Issue>, 'id' | 'title' | 'createdAt'>
 
 export const columns: Array<ColumnDef<IssueRow>> = [
+	{
+		id: 'select',
+		cell: ({ row }) => (
+			<Checkbox
+				checked={row.getIsSelected()}
+				onCheckedChange={value => row.toggleSelected(Boolean(value))}
+				aria-label="Select row"
+				className="translate-y-[2px]"
+			/>
+		),
+		enableSorting: false,
+		enableHiding: false,
+	},
 	{
 		accessorKey: 'id',
 		header: 'Id',
@@ -75,12 +92,15 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
+		getRowId(row) {
+			return String(row.id)
+		},
 	})
 
 	const navigate = useNavigate()
 
 	return (
-		<div className=" text-left">
+		<div className="text-left">
 			<Table>
 				<TableHeader className="sr-only">
 					{table.getHeaderGroups().map(headerGroup => (
@@ -117,13 +137,23 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 							<TableRow
 								key={row.id}
 								data-state={row.getIsSelected() && 'selected'}
-								className="cursor-pointer"
-								onClick={() => {
-									navigate(`/issues/${row.original.id}`)
-								}}
+								className={clsx(
+									!table.getIsSomeRowsSelected() && 'cursor-pointer',
+								)}
 							>
 								{row.getVisibleCells().map(cell => (
-									<TableCell key={cell.id}>
+									<TableCell
+										key={cell.id}
+										onClick={event => {
+											// Don't navigate if this is a checkbox
+											if (cell.column.id === 'select') return
+
+											// Don't navigate if other checkboxes are clicked
+											if (table.getIsSomeRowsSelected()) return
+
+											navigate(`/issues/${row.original.id}`)
+										}}
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}
