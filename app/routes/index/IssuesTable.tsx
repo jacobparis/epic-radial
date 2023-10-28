@@ -99,8 +99,24 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 
 	const navigate = useNavigate()
 
+	const bulkDeleteIssues = useBulkDeleteIssues()
 	return (
 		<div className="text-left">
+			<div className="flex items-baseline gap-x-4 p-2">
+				<span className="px-2 text-sm text-gray-600">
+					{table.getSelectedRowModel().rows.length} selected
+				</span>
+				<Button
+					variant="outline"
+					onClick={() => {
+						bulkDeleteIssues(
+							table.getSelectedRowModel().rows.map(row => row.original.id),
+						)
+					}}
+				>
+					Delete
+				</Button>
+			</div>
 			<Table>
 				<TableHeader className="sr-only">
 					{table.getHeaderGroups().map(headerGroup => (
