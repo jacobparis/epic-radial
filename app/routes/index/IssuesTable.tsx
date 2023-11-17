@@ -131,7 +131,7 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 					{table.getSelectedRowModel().rows.length} selected
 				</span>
 
-				{table.getIsSomeRowsSelected() ? (
+				{table.getIsSomeRowsSelected() || table.getIsAllRowsSelected() ? (
 					<>
 						<Button
 							variant="outline"
