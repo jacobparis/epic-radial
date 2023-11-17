@@ -1,13 +1,7 @@
 // http://localhost:3000/issues/1
 
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import {
-	Link,
-	Outlet,
-	useLoaderData,
-	useLocation,
-	useParams,
-} from '@remix-run/react'
+import { Link, Outlet, useLoaderData, useParams } from '@remix-run/react'
 
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Button } from '#app/components/ui/button.tsx'
