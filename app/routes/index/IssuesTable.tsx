@@ -25,7 +25,10 @@ import {
 import { useBulkDeleteIssues } from '../issues+/delete.tsx'
 import { useBulkEditIssues } from '../issues+/edit.tsx'
 
-type IssueRow = Pick<SerializeFrom<Issue>, 'id' | 'title' | 'createdAt'>
+type IssueRow = Pick<
+	SerializeFrom<Issue>,
+	'id' | 'title' | 'createdAt' | 'priority' | 'status'
+>
 
 export const columns: Array<ColumnDef<IssueRow>> = [
 	{
@@ -67,6 +70,20 @@ export const columns: Array<ColumnDef<IssueRow>> = [
 					{row.getValue('title')}
 				</div>
 			)
+		},
+	},
+	{
+		accessorKey: 'priority',
+		header: 'Priority',
+		accessorFn(row) {
+			return row.priority
+		},
+	},
+	{
+		accessorKey: 'status',
+		header: 'Status',
+		accessorFn(row) {
+			return row.status
 		},
 	},
 	{
