@@ -22,8 +22,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '#app/components/ui/table.tsx'
-import { useBulkDeleteIssues } from '../issues+/delete.tsx'
-import { useBulkEditIssues } from '../issues+/edit.tsx'
+import { useBulkDeleteIssues, useBulkEditIssues } from '../issues+/_index.tsx'
 
 type IssueRow = Pick<
 	SerializeFrom<Issue>,
@@ -136,9 +135,21 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 						<Button
 							variant="outline"
 							onClick={() => {
-								bulkDeleteIssues(
-									table.getSelectedRowModel().rows.map(row => row.original.id),
-								)
+								table.resetRowSelection()
+							}}
+						>
+							Deselect
+						</Button>
+
+						<Button
+							variant="outline"
+							onClick={() => {
+								bulkDeleteIssues({
+									issues: table
+										.getSelectedRowModel()
+										.rows.map(row => row.original.id),
+								})
+								table.resetRowSelection()
 							}}
 						>
 							Delete
@@ -148,13 +159,15 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 							className="w-[200px]"
 							placeholder="Change priority"
 							inputProps={{
-								onValueChange(value) {
-									bulkEditIssues(
-										table
+								onValueChange(value: 'low' | 'medium' | 'high') {
+									bulkEditIssues({
+										issues: table
 											.getSelectedRowModel()
 											.rows.map(row => row.original.id),
-										{ priority: value },
-									)
+										changeset: {
+											priority: value,
+										},
+									})
 								},
 							}}
 						>
