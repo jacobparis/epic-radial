@@ -1,3 +1,5 @@
+// http://localhost:3000/
+
 import { type Issue } from '@prisma/client'
 import { type SerializeFrom } from '@remix-run/node'
 import { Link, useNavigate } from '@remix-run/react'
@@ -8,8 +10,10 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
+import { SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Checkbox } from '#app/components/ui/checkbox.tsx'
+import { SelectGroup, SelectItem } from '#app/components/ui/select.tsx'
 import {
 	Table,
 	TableBody,
@@ -19,6 +23,7 @@ import {
 	TableRow,
 } from '#app/components/ui/table.tsx'
 import { useBulkDeleteIssues } from '../issues+/delete.tsx'
+import { useBulkEditIssues } from '../issues+/edit.tsx'
 
 type IssueRow = Pick<SerializeFrom<Issue>, 'id' | 'title' | 'createdAt'>
 
@@ -100,6 +105,8 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 	const navigate = useNavigate()
 
 	const bulkDeleteIssues = useBulkDeleteIssues()
+	const bulkEditIssues = useBulkEditIssues()
+
 	return (
 		<div className="text-left">
 			<div className="flex items-baseline gap-x-4 p-2">
@@ -119,6 +126,29 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 						>
 							Delete
 						</Button>
+
+						<SelectField
+							className="w-[200px]"
+							placeholder="Change priority"
+							inputProps={{
+								onValueChange(value) {
+									bulkEditIssues(
+										table
+											.getSelectedRowModel()
+											.rows.map(row => row.original.id),
+										{ priority: value },
+									)
+								},
+							}}
+						>
+							<SelectGroup>
+								{['low', 'medium', 'high'].map(value => (
+									<SelectItem key={value} value={value}>
+										{value}
+									</SelectItem>
+								))}
+							</SelectGroup>
+						</SelectField>
 					</>
 				) : null}
 			</div>

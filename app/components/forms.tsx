@@ -154,13 +154,15 @@ export function CheckboxField({
 }
 
 export function SelectField({
+	inputProps = {},
 	labelProps,
-	inputProps,
+	placeholder,
 	className,
 	children,
 }: {
-	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
-	inputProps: React.SelectHTMLAttributes<HTMLSelectElement> & SelectProps
+	labelProps?: React.LabelHTMLAttributes<HTMLLabelElement>
+	inputProps?: React.SelectHTMLAttributes<HTMLSelectElement> & SelectProps
+	placeholder?: string
 	className?: string
 	children: React.ReactNode
 }) {
@@ -168,10 +170,10 @@ export function SelectField({
 	const id = inputProps.id ?? fallbackId
 	return (
 		<div className={className}>
-			<Label htmlFor={id} {...labelProps} />
+			{labelProps ? <Label htmlFor={id} {...labelProps} /> : null}
 			<Select id={id} {...inputProps}>
 				<SelectTrigger>
-					<SelectValue />
+					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>{children}</SelectContent>
 			</Select>
