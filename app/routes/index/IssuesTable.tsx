@@ -106,16 +106,21 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 				<span className="px-2 text-sm text-gray-600">
 					{table.getSelectedRowModel().rows.length} selected
 				</span>
-				<Button
-					variant="outline"
-					onClick={() => {
-						bulkDeleteIssues(
-							table.getSelectedRowModel().rows.map(row => row.original.id),
-						)
-					}}
-				>
-					Delete
-				</Button>
+
+				{table.getIsSomeRowsSelected() ? (
+					<>
+						<Button
+							variant="outline"
+							onClick={() => {
+								bulkDeleteIssues(
+									table.getSelectedRowModel().rows.map(row => row.original.id),
+								)
+							}}
+						>
+							Delete
+						</Button>
+					</>
+				) : null}
 			</div>
 			<Table>
 				<TableHeader className="sr-only">
