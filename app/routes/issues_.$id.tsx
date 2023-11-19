@@ -39,7 +39,7 @@ export default function Issue() {
 				<div className="flex items-center justify-between">
 					<div>
 						<Button variant="ghost" size="sm" asChild className="">
-							<Link to="/">All issues </Link>
+							<Link to="/issues">All issues </Link>
 						</Button>
 						<span>/</span>
 						<span className="px-2"> {String(issue.id).padStart(3, '0')}</span>

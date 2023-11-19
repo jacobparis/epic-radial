@@ -1,4 +1,4 @@
-// http://localhost:3000/dashboard/new
+// http://localhost:3000/index/new
 
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
@@ -28,7 +28,7 @@ import {
 const CreateIssueSchema = z.object({
 	title: z.string({ required_error: 'Title is required' }).nonempty(),
 	description: z.string().optional(),
-	redirectPolicy: z.enum(['none', 'dashboard', 'issue']).optional(),
+	redirectPolicy: z.enum(['none', 'index', 'item']).optional(),
 })
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -52,13 +52,13 @@ export async function action({ request }: ActionFunctionArgs) {
 	})
 
 	switch (submission.value.redirectPolicy) {
-		case 'dashboard':
-			return redirectWithToast(`/dashboard`, {
+		case 'index':
+			return redirectWithToast(`/issues`, {
 				description: `Created issue ${String(newIssue.id).padStart(3, '0')} `,
 				type: 'success',
 			})
 
-		case 'issue':
+		case 'item':
 			return redirect(`/issues/${newIssue.id}`)
 
 		default:
@@ -167,10 +167,8 @@ export default function Dashboard() {
 									>
 										<SelectGroup>
 											<SelectItem value="none">Keep form open</SelectItem>
-											<SelectItem value="dashboard">
-												Redirect to dashboard
-											</SelectItem>
-											<SelectItem value="issue">Redirect to issue</SelectItem>
+											<SelectItem value="index">Redirect to index</SelectItem>
+											<SelectItem value="item">Redirect to issue</SelectItem>
 										</SelectGroup>
 									</SelectField>
 

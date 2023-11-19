@@ -1,9 +1,17 @@
+// http://localhost:3000/issues
+
 import { conform } from '@conform-to/react'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { useFetcher } from '@remix-run/react'
+import {
+	json,
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
+} from '@remix-run/node'
+import { Link, Outlet, useLoaderData, useFetcher } from '@remix-run/react'
 import { useCallback } from 'react'
 import { z } from 'zod'
+import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
+import { IssuesTable } from './IssuesTable.tsx'
 
 const BulkDeleteSchema = z.object({
 	[conform.INTENT]: z.literal('delete'),
@@ -123,4 +131,39 @@ export function useBulkEditIssues() {
 	)
 
 	return submit
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+	const issues = await prisma.issue.findMany({
+		select: {
+			id: true,
+			title: true,
+			description: true,
+			status: true,
+			priority: true,
+			createdAt: true,
+		},
+	})
+
+	return json({ issues })
+}
+
+export default function Dashboard() {
+	const { issues } = useLoaderData<typeof loader>()
+
+	return (
+		<div className="mx-auto min-h-full max-w-4xl ">
+			<div className="py-2">
+				<Button asChild>
+					<Link to="/issues/new"> New issue</Link>
+				</Button>
+			</div>
+
+			<div className="border border-neutral-200">
+				<IssuesTable data={issues} />
+			</div>
+
+			<Outlet />
+		</div>
+	)
 }
