@@ -22,7 +22,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '#app/components/ui/table.tsx'
-import { useBulkDeleteIssues, useBulkEditIssues } from '../issues+/_index.tsx'
+import { useBulkDeleteIssues, useBulkEditIssues } from '../issues._index.tsx'
 
 type IssueRow = Pick<
 	SerializeFrom<Issue>,
