@@ -172,7 +172,7 @@ export function SelectField({
 		<div className={className}>
 			{labelProps ? <Label htmlFor={id} {...labelProps} /> : null}
 			<Select id={id} {...inputProps}>
-				<SelectTrigger>
+				<SelectTrigger aria-label={placeholder}>
 					<SelectValue placeholder={placeholder} />
 				</SelectTrigger>
 				<SelectContent>{children}</SelectContent>
