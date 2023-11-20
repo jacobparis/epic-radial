@@ -25,6 +25,7 @@ import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { EpicToaster } from './components/toaster.tsx'
 import { href as iconsHref } from './components/ui/icon.tsx'
+import { getTableSchema } from './schema.server.ts'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
 import { authenticator, getUserId } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints, useHints } from './utils/client-hints.tsx'
@@ -118,6 +119,7 @@ export async function loader({ request }: DataFunctionArgs) {
 	return json(
 		{
 			user,
+			schema: await getTableSchema(),
 			requestInfo: {
 				hints: getHints(request),
 				origin: getDomainUrl(request),
@@ -283,4 +285,14 @@ export function ErrorBoundary() {
 			<GeneralErrorBoundary />
 		</Document>
 	)
+}
+
+export function useRootLoaderData() {
+	const data = useRouteLoaderData<typeof loader>('root')
+
+	if (data === undefined) {
+		throw new Error('Can only be used while rendering App')
+	}
+
+	return data
 }

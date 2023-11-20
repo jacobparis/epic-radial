@@ -23,7 +23,7 @@ const BulkEditSchema = z.object({
 	issues: z.array(z.number()),
 	changeset: z
 		.object({
-			priority: z.enum(['low', 'medium', 'high']),
+			priority: z.string(),
 		})
 		.partial(),
 })

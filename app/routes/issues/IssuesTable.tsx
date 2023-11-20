@@ -22,6 +22,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '#app/components/ui/table.tsx'
+import { useRootLoaderData } from '#app/root.tsx'
 import { useBulkDeleteIssues, useBulkEditIssues } from './route.tsx'
 
 type IssueRow = Pick<
@@ -122,6 +123,7 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 
 	const bulkDeleteIssues = useBulkDeleteIssues()
 	const bulkEditIssues = useBulkEditIssues()
+	const { schema } = useRootLoaderData()
 
 	return (
 		<div className="text-left">
@@ -159,7 +161,7 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 							className="w-[200px]"
 							placeholder="Change priority"
 							inputProps={{
-								onValueChange(value: 'low' | 'medium' | 'high') {
+								onValueChange(value: (typeof schema.priorities)[number]) {
 									bulkEditIssues({
 										issues: table
 											.getSelectedRowModel()
@@ -172,7 +174,7 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 							}}
 						>
 							<SelectGroup>
-								{['low', 'medium', 'high'].map(value => (
+								{schema.priorities.map(value => (
 									<SelectItem key={value} value={value}>
 										{value}
 									</SelectItem>

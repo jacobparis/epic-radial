@@ -15,6 +15,7 @@ import { Button } from '#app/components/ui/button.tsx'
 import { Input } from '#app/components/ui/input.tsx'
 import { SelectGroup, SelectItem } from '#app/components/ui/select.tsx'
 import { Textarea } from '#app/components/ui/textarea.tsx'
+import { useRootLoaderData } from '#app/root.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 
 import { invariant } from '#app/utils/misc.tsx'
@@ -23,8 +24,8 @@ import { redirectWithToast } from '#app/utils/toast.server.ts'
 const EditIssueSchema = z.object({
 	title: z.string({ required_error: 'Title is required' }).nonempty(),
 	description: z.string().optional(),
-	status: z.enum(['todo', 'in-progress', 'done']).optional(),
-	priority: z.enum(['low', 'medium', 'high']).optional(),
+	status: z.string().optional(),
+	priority: z.string().optional(),
 })
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -117,6 +118,8 @@ export default function Issue() {
 		},
 	})
 
+	const { schema } = useRootLoaderData()
+
 	return (
 		<Form method="POST" {...form.props}>
 			<div className="mt-4 flex gap-x-2">
@@ -128,7 +131,7 @@ export default function Issue() {
 					inputProps={conform.input(fields.status)}
 				>
 					<SelectGroup>
-						{['todo', 'in-progress', 'done'].map(value => (
+						{schema.statuses.map(value => (
 							<SelectItem key={value} value={value}>
 								{value}
 							</SelectItem>
@@ -144,7 +147,7 @@ export default function Issue() {
 					inputProps={conform.input(fields.priority)}
 				>
 					<SelectGroup>
-						{['low', 'medium', 'high'].map(value => (
+						{schema.priorities.map(value => (
 							<SelectItem key={value} value={value}>
 								{value}
 							</SelectItem>
