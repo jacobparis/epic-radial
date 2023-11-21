@@ -1,4 +1,4 @@
-// http://localhost:3000/index/new
+// http://localhost:3000/issues/new
 
 import { conform, useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'

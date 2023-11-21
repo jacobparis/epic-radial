@@ -6,9 +6,10 @@ import {
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 } from '@remix-run/node'
-import { Outlet, useLoaderData, useFetcher } from '@remix-run/react'
+import { Outlet, useLoaderData, useFetcher, Link } from '@remix-run/react'
 import { useCallback } from 'react'
 import { z } from 'zod'
+import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { IssuesTable } from './IssuesTable.tsx'
 
@@ -154,6 +155,15 @@ export default function Dashboard() {
 		<div className="min-h-full ">
 			<div className="bg-white">
 				<IssuesTable data={issues} />
+			</div>
+
+			<div className="grid place-items-center gap-4 p-8">
+				<p className="text-neutral-700">
+					Generate sample issues for development purposes
+				</p>
+				<Button asChild>
+					<Link to="/issues/new-bulk">Create more issues</Link>
+				</Button>
 			</div>
 
 			<Outlet />
