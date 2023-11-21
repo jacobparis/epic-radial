@@ -6,10 +6,9 @@ import {
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 } from '@remix-run/node'
-import { Link, Outlet, useLoaderData, useFetcher } from '@remix-run/react'
+import { Outlet, useLoaderData, useFetcher } from '@remix-run/react'
 import { useCallback } from 'react'
 import { z } from 'zod'
-import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { IssuesTable } from './IssuesTable.tsx'
 
@@ -152,14 +151,8 @@ export default function Dashboard() {
 	const { issues } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="mx-auto min-h-full max-w-4xl ">
-			<div className="py-2">
-				<Button asChild>
-					<Link to="/issues/new"> New issue</Link>
-				</Button>
-			</div>
-
-			<div className="border border-neutral-200">
+		<div className="min-h-full ">
+			<div className="bg-white">
 				<IssuesTable data={issues} />
 			</div>
 

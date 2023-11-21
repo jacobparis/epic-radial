@@ -34,32 +34,31 @@ export default function Issue() {
 	const { issue } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="mx-auto min-h-full max-w-4xl" key={issue.id}>
-			<div className="px-4 py-6">
-				<div className="flex items-center justify-between">
-					<div>
-						<Button variant="ghost" size="sm" asChild className="">
-							<Link to="/issues">All issues </Link>
-						</Button>
-						<span>/</span>
-						<span className="px-2"> {String(issue.id).padStart(3, '0')}</span>
-					</div>
-
-					<div className="flex gap-x-2">
-						<Button variant="outline" size="sm" asChild className="px-2">
-							<Link to={`/issues/${issue.id}/prev`} prefetch="intent">
-								<Icon name="caret-up" className="h-6 w-6" />
-							</Link>
-						</Button>
-
-						<Button variant="outline" size="sm" asChild className="px-2">
-							<Link to={`/issues/${issue.id}/next`} prefetch="intent">
-								<Icon name="caret-down" className="h-6 w-6" />
-							</Link>
-						</Button>
-					</div>
+		<div className="min-h-full max-w-4xl bg-white" key={issue.id}>
+			<div className="flex items-center justify-between border-b border-neutral-100">
+				<div className="flex items-center gap-x-2 p-2">
+					<Button variant="ghost" size="sm" asChild>
+						<Link to="/issues">All issues </Link>
+					</Button>
+					<span>/</span>
+					<span className="px-2"> {String(issue.id).padStart(3, '0')}</span>
 				</div>
 
+				<div className="flex gap-x-2 p-2">
+					<Button variant="outline" size="sm" asChild className="px-2">
+						<Link to={`/issues/${issue.id}/prev`} prefetch="intent">
+							<Icon name="caret-up" className="h-6 w-6" />
+						</Link>
+					</Button>
+
+					<Button variant="outline" size="sm" asChild className="px-2">
+						<Link to={`/issues/${issue.id}/next`} prefetch="intent">
+							<Icon name="caret-down" className="h-6 w-6" />
+						</Link>
+					</Button>
+				</div>
+			</div>
+			<div className="px-4">
 				<Outlet />
 			</div>
 		</div>
@@ -79,7 +78,7 @@ export function ErrorBoundary() {
 							<div className="flex items-center justify-between">
 								<div>
 									<Button variant="ghost" size="sm" asChild className="">
-										<Link to="/">All issues </Link>
+										<Link to="/issues">All issues </Link>
 									</Button>
 									<span>/</span>
 									<span className="px-2"> {String(id).padStart(3, '0')}</span>

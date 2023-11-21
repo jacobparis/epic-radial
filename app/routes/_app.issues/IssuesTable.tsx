@@ -127,8 +127,8 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 
 	return (
 		<div className="text-left">
-			<div className="flex items-baseline gap-x-4 p-2">
-				<span className="px-2 text-sm text-gray-600">
+			<div className="flex items-center gap-x-4 p-2">
+				<span className="h-8 p-2 text-sm tabular-nums text-gray-600">
 					{table.getSelectedRowModel().rows.length} selected
 				</span>
 

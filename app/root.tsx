@@ -16,6 +16,7 @@ import {
 	ScrollRestoration,
 	useFetchers,
 	useLoaderData,
+	useRouteLoaderData,
 } from '@remix-run/react'
 import { withSentry } from '@sentry/remix'
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
@@ -195,7 +196,7 @@ function Document({
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
 				<Links />
 			</head>
-			<body className="bg-background text-foreground">
+			<body className="bg-[#f5f5f5] text-foreground">
 				{children}
 				<script
 					nonce={nonce}
