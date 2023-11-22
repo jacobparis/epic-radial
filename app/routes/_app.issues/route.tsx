@@ -12,6 +12,8 @@ import { z } from 'zod'
 import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { IssuesTable } from './IssuesTable.tsx'
+import { PaginationBar } from './PaginationBar.tsx'
+import { PaginationLimitSelect } from './PaginationLimitSelect.tsx'
 
 const BulkDeleteSchema = z.object({
 	[conform.INTENT]: z.literal('delete'),
@@ -134,6 +136,12 @@ export function useBulkEditIssues() {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+	const url = new URL(request.url)
+	const $top = Number(url.searchParams.get('$top')) ?? 10
+	const $skip = Number(url.searchParams.get('$skip')) || 0
+
+	const issueCount = await prisma.issue.count()
+
 	const issues = await prisma.issue.findMany({
 		select: {
 			id: true,
@@ -143,18 +151,33 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			priority: true,
 			createdAt: true,
 		},
+		orderBy: {
+			id: 'asc',
+		},
+		skip: $skip,
+		take: $top || undefined,
 	})
 
-	return json({ issues })
+	return json({
+		$top: $top,
+		total: issueCount,
+		issues,
+	})
 }
 
 export default function Dashboard() {
-	const { issues } = useLoaderData<typeof loader>()
+	const { $top, total, issues } = useLoaderData<typeof loader>()
 
 	return (
 		<div className="min-h-full ">
 			<div className="bg-white">
 				<IssuesTable data={issues} />
+
+				<div className="flex justify-between p-2">
+					{$top ? <PaginationBar total={total} /> : null}
+
+					<PaginationLimitSelect defaultValue={String($top)} />
+				</div>
 			</div>
 
 			<div className="grid place-items-center gap-4 p-8">
