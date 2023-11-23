@@ -14,6 +14,7 @@ export function PaginationLimitSelect(
 
 	return (
 		<Form
+			preventScrollReset
 			method="GET"
 			className="flex grow gap-x-2"
 			onChange={event => {

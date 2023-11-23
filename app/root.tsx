@@ -188,7 +188,7 @@ function Document({
 	env?: Record<string, string>
 }) {
 	return (
-		<html lang="en" className={`${theme} h-full overflow-x-hidden`}>
+		<html lang="en" className={`${theme}`}>
 			<head>
 				<ClientHintCheck nonce={nonce} />
 				<Meta />
@@ -196,7 +196,7 @@ function Document({
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
 				<Links />
 			</head>
-			<body className="bg-[#f5f5f5] text-foreground">
+			<body className="overflow-y-scroll bg-[#f5f5f5] text-foreground">
 				{children}
 				<script
 					nonce={nonce}
