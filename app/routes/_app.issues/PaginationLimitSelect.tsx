@@ -1,17 +1,13 @@
 import { type SelectProps } from '@radix-ui/react-select'
-import { useSearchParams, Form } from '@remix-run/react'
+import { Form } from '@remix-run/react'
 import { SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { SelectGroup, SelectItem } from '#app/components/ui/select.tsx'
+import { ExistingParams } from './ExistingParams.tsx'
 
 export function PaginationLimitSelect(
 	inputProps: React.SelectHTMLAttributes<HTMLSelectElement> & SelectProps,
 ) {
-	const [searchParams] = useSearchParams()
-	const existingParams = Array.from(searchParams.entries()).filter(
-		([key]) => key !== '$top',
-	)
-
 	return (
 		<Form
 			preventScrollReset
@@ -23,9 +19,7 @@ export function PaginationLimitSelect(
 				}
 			}}
 		>
-			{existingParams.map(([key, value]) => {
-				return <input key={key} type="hidden" name={key} value={value} />
-			})}
+			<ExistingParams exclude={['$top']} />
 
 			<SelectField
 				className="ml-auto w-[200px]"
