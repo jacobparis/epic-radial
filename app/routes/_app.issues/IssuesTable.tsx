@@ -10,6 +10,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
+import { useState } from 'react'
 import { SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Checkbox } from '#app/components/ui/checkbox.tsx'
@@ -110,7 +111,13 @@ export const columns: Array<ColumnDef<IssueRow>> = [
 	},
 ]
 export function IssuesTable({ data }: { data: Array<IssueRow> }) {
+	const [rowSelection, setRowSelection] = useState({})
 	const table = useReactTable<(typeof data)[number]>({
+		state: {
+			rowSelection,
+		},
+		enableRowSelection: true,
+		onRowSelectionChange: setRowSelection,
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
@@ -129,7 +136,7 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 		<div className="text-left">
 			<div className="flex items-center gap-x-4 p-2">
 				<span className="h-8 p-2 text-sm tabular-nums text-gray-600">
-					{table.getSelectedRowModel().rows.length} selected
+					{Object.keys(rowSelection).length} selected
 				</span>
 
 				{table.getIsSomeRowsSelected() || table.getIsAllRowsSelected() ? (
