@@ -13,7 +13,14 @@ export function ExistingParams({
 	return (
 		<>
 			{existingParams.map(([key, value]) => {
-				return <input key={key} type="hidden" name={key} value={value} />
+				return (
+					<input
+						key={`${key}=${value}`}
+						type="hidden"
+						name={key}
+						value={value}
+					/>
+				)
 			})}
 		</>
 	)
