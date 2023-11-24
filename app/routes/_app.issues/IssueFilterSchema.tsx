@@ -33,53 +33,71 @@ export function FilterBar() {
 	})
 
 	return (
-		<Form className="flex items-end gap-x-2 p-4" {...form.props}>
-			<ExistingParams
-				exclude={[fields.title.name, fields.priority.name, fields.status.name]}
-			/>
-
-			<Field
-				className="-mb-8"
-				labelProps={{ children: 'Search by title' }}
-				inputProps={conform.input(fields.title)}
-			/>
-
-			<SelectField
-				className="w-[200px]"
-				labelProps={{
-					children: 'Status',
-				}}
-				inputProps={conform.input(fields.status)}
+		<div className="flex gap-x-2 p-4">
+			<Form
+				key={searchParams.toString()}
+				className="flex items-end gap-x-2"
+				{...form.props}
 			>
-				<SelectGroup>
-					<SelectItem value="any">Any</SelectItem>
-					{schema.statuses.map(value => (
-						<SelectItem key={value} value={value}>
-							{value}
-						</SelectItem>
-					))}
-				</SelectGroup>
-			</SelectField>
+				<ExistingParams exclude={['title', 'priority', 'status', '$skip']} />
 
-			<SelectField
-				className="w-[200px]"
-				labelProps={{
-					children: 'Priority',
-				}}
-				inputProps={conform.input(fields.priority)}
-			>
-				<SelectGroup>
-					<SelectItem value="any">Any</SelectItem>
+				<Field
+					className="-mb-8"
+					labelProps={{ children: 'Search by title' }}
+					inputProps={conform.input(fields.title)}
+				/>
 
-					{schema.priorities.map(value => (
-						<SelectItem key={value} value={value}>
-							{value}
-						</SelectItem>
-					))}
-				</SelectGroup>
-			</SelectField>
+				<SelectField
+					className="w-[200px]"
+					labelProps={{
+						children: 'Status',
+					}}
+					inputProps={conform.input(fields.status)}
+				>
+					<SelectGroup>
+						<SelectItem value="any">Any</SelectItem>
+						{schema.statuses.map(value => (
+							<SelectItem key={value} value={value}>
+								{value}
+							</SelectItem>
+						))}
+					</SelectGroup>
+				</SelectField>
 
-			<Button type="submit">Filter</Button>
-		</Form>
+				<SelectField
+					className="w-[200px]"
+					labelProps={{
+						children: 'Priority',
+					}}
+					inputProps={conform.input(fields.priority)}
+				>
+					<SelectGroup>
+						<SelectItem value="any">Any</SelectItem>
+
+						{schema.priorities.map(value => (
+							<SelectItem key={value} value={value}>
+								{value}
+							</SelectItem>
+						))}
+					</SelectGroup>
+				</SelectField>
+
+				<Button type="submit">Filter</Button>
+			</Form>
+
+			<Form className="flex items-end gap-x-2">
+				<ExistingParams
+					exclude={[
+						fields.title.name,
+						fields.priority.name,
+						fields.status.name,
+					]}
+				/>
+
+				<Button type="submit" variant="ghost">
+					Clear
+				</Button>
+			</Form>
+		</div>
 	)
 }
