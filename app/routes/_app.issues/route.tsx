@@ -1,6 +1,8 @@
 // http://localhost:3000/issues
 
 import { conform } from '@conform-to/react'
+import { parse } from '@conform-to/zod'
+import { type Prisma } from '@prisma/client'
 import {
 	json,
 	type LoaderFunctionArgs,
@@ -11,6 +13,7 @@ import { useCallback } from 'react'
 import { z } from 'zod'
 import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
+import { IssueFilterSchema, FilterBar } from './IssueFilterSchema.tsx'
 import { IssuesTable } from './IssuesTable.tsx'
 import { PaginationBar } from './PaginationBar.tsx'
 import { PaginationLimitSelect } from './PaginationLimitSelect.tsx'
@@ -137,12 +140,31 @@ export function useBulkEditIssues() {
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url)
-	const $top = Number(url.searchParams.get('$top')) ?? 10
-	const $skip = Number(url.searchParams.get('$skip')) || 0
 
-	const issueCount = await prisma.issue.count()
+	const submission = parse(url.searchParams, {
+		schema: IssueFilterSchema.merge(IssuePaginationSchema).partial(),
+	})
+
+	if (!submission.value) {
+		// Just a safeguard to keep types happy now and protect us if the schema changes later
+		throw new Error('Invalid submission')
+	}
+
+	const $top = submission.value.$top ?? 10
+	const $skip = submission.value.$skip || 0
+
+	const where: Prisma.IssueWhereInput = {
+		title: {
+			contains: submission.value.title ?? undefined,
+		},
+		status: submission.value.status ?? undefined,
+		priority: submission.value.priority ?? undefined,
+	}
+
+	const issueCount = await prisma.issue.count({ where })
 
 	const issues = await prisma.issue.findMany({
+		where,
 		select: {
 			id: true,
 			title: true,
@@ -159,11 +181,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	})
 
 	return json({
-		$top: $top,
+		$top,
 		total: issueCount,
 		issues,
 	})
 }
+
+const IssuePaginationSchema = z.object({
+	$top: z.number().optional(),
+	$skip: z.number().optional(),
+})
 
 export default function Dashboard() {
 	const { $top, total, issues } = useLoaderData<typeof loader>()
@@ -171,6 +198,8 @@ export default function Dashboard() {
 	return (
 		<div className="min-h-full ">
 			<div className="bg-white">
+				<FilterBar />
+
 				<IssuesTable data={issues} />
 
 				<div className="flex justify-between p-2">
