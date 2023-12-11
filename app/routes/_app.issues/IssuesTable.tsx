@@ -110,7 +110,13 @@ export const columns: Array<ColumnDef<IssueRow>> = [
 		},
 	},
 ]
-export function IssuesTable({ data }: { data: Array<IssueRow> }) {
+export function IssuesTable({
+	data,
+	issueIds,
+}: {
+	data: Array<IssueRow>
+	issueIds: Array<number>
+}) {
 	const [rowSelection, setRowSelection] = useState({})
 	const table = useReactTable<(typeof data)[number]>({
 		state: {
@@ -139,7 +145,44 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 					{Object.keys(rowSelection).length} selected
 				</span>
 
-				{table.getIsSomeRowsSelected() || table.getIsAllRowsSelected() ? (
+				{data.some(({ id }) => !(id in rowSelection)) ? (
+					<Button
+						variant="outline"
+						onClick={() => {
+							table.setRowSelection(existingSelection => {
+								const selection = { ...existingSelection }
+
+								for (const row of data) {
+									selection[row.id] = true
+								}
+
+								return selection
+							})
+						}}
+					>
+						Select page
+					</Button>
+				) : (
+					<Button
+						variant="outline"
+						disabled={issueIds.length === Object.keys(rowSelection).length}
+						onClick={() => {
+							table.setRowSelection(existingSelection => {
+								const selection = { ...existingSelection }
+
+								for (const id of issueIds) {
+									selection[id] = true
+								}
+
+								return selection
+							})
+						}}
+					>
+						Select all
+					</Button>
+				)}
+
+				{Object.keys(rowSelection).length > 0 ? (
 					<>
 						<Button
 							variant="outline"
@@ -154,9 +197,7 @@ export function IssuesTable({ data }: { data: Array<IssueRow> }) {
 							variant="outline"
 							onClick={() => {
 								bulkDeleteIssues({
-									issues: table
-										.getSelectedRowModel()
-										.rows.map(row => row.original.id),
+									issues: Object.keys(rowSelection).map(id => Number(id)),
 								})
 								table.resetRowSelection()
 							}}

@@ -161,7 +161,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		priority: submission.value.priority ?? undefined,
 	}
 
-	const issueCount = await prisma.issue.count({ where })
+	const issueIds = await prisma.issue.findMany({
+		where,
+		select: { id: true },
+	})
 
 	const issues = await prisma.issue.findMany({
 		where,
@@ -182,7 +185,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	return json({
 		$top,
-		total: issueCount,
+		issueIds: issueIds.map(issue => issue.id),
 		issues,
 	})
 }
@@ -193,17 +196,17 @@ const IssuePaginationSchema = z.object({
 })
 
 export default function Dashboard() {
-	const { $top, total, issues } = useLoaderData<typeof loader>()
+	const { $top, issueIds, issues } = useLoaderData<typeof loader>()
 
 	return (
 		<div className="min-h-full ">
 			<div className="bg-white">
 				<FilterBar />
 
-				<IssuesTable data={issues} />
+				<IssuesTable data={issues} issueIds={issueIds} />
 
 				<div className="flex justify-between p-2">
-					{$top ? <PaginationBar total={total} /> : null}
+					{$top ? <PaginationBar total={issueIds.length} /> : null}
 
 					<PaginationLimitSelect defaultValue={String($top)} />
 				</div>
