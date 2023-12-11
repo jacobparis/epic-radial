@@ -64,7 +64,11 @@ export function PaginationBar({ total }: { total: number }) {
 	}
 
 	return (
-		<div className="flex items-center gap-1">
+		<div
+			className="flex items-center gap-1"
+			role="navigation"
+			aria-label="Pagination"
+		>
 			<Button size="xs" variant="outline" asChild disabled={!canPageBackwards}>
 				<Link
 					to={{
