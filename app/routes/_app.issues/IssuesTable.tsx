@@ -2,7 +2,7 @@
 
 import { type Issue } from '@prisma/client'
 import { type SerializeFrom } from '@remix-run/node'
-import { Link, useNavigate } from '@remix-run/react'
+import { Form, Link, useNavigate } from '@remix-run/react'
 import {
 	type ColumnDef,
 	flexRender,
@@ -24,6 +24,7 @@ import {
 	TableRow,
 } from '#app/components/ui/table.tsx'
 import { useRootLoaderData } from '#app/root.tsx'
+import { ExistingParams } from './ExistingParams.tsx'
 import { useBulkDeleteIssues, useBulkEditIssues } from './route.tsx'
 
 type IssueRow = Pick<
@@ -110,6 +111,7 @@ export const columns: Array<ColumnDef<IssueRow>> = [
 		},
 	},
 ]
+
 export function IssuesTable({
 	data,
 	issueIds,
@@ -193,45 +195,61 @@ export function IssuesTable({
 							Deselect
 						</Button>
 
-						<Button
-							variant="outline"
-							onClick={() => {
-								bulkDeleteIssues({
-									issues: Object.keys(rowSelection).map(id => Number(id)),
-								})
-								table.resetRowSelection()
-							}}
-						>
-							Delete
-						</Button>
+						<Form method="GET">
+							<ExistingParams
+								exclude={['$skip', '$top', 'title', 'status', 'priority', 'id']}
+							/>
+							{Object.keys(rowSelection).map(id => (
+								<input key={id} type="hidden" name="id" value={id} />
+							))}
 
-						<SelectField
-							className="w-[200px]"
-							placeholder="Change priority"
-							inputProps={{
-								onValueChange(value: (typeof schema.priorities)[number]) {
-									bulkEditIssues({
-										issues: table
-											.getSelectedRowModel()
-											.rows.map(row => row.original.id),
-										changeset: {
-											priority: value,
-										},
-									})
-								},
-							}}
-						>
-							<SelectGroup>
-								{schema.priorities.map(value => (
-									<SelectItem key={value} value={value}>
-										{value}
-									</SelectItem>
-								))}
-							</SelectGroup>
-						</SelectField>
+							<Button type="submit" variant="outline">
+								View selection
+							</Button>
+						</Form>
 					</>
 				) : null}
 			</div>
+
+			{Object.keys(rowSelection).length > 0 ? (
+				<div className="flex items-center gap-x-4 p-2">
+					<Button
+						variant="outline"
+						onClick={() => {
+							bulkDeleteIssues({
+								issues: Object.keys(rowSelection).map(id => Number(id)),
+							})
+							table.resetRowSelection()
+						}}
+					>
+						Delete
+					</Button>
+					<SelectField
+						className="w-[200px]"
+						placeholder="Change priority"
+						inputProps={{
+							onValueChange(value: (typeof schema.priorities)[number]) {
+								bulkEditIssues({
+									issues: table
+										.getSelectedRowModel()
+										.rows.map(row => row.original.id),
+									changeset: {
+										priority: value,
+									},
+								})
+							},
+						}}
+					>
+						<SelectGroup>
+							{schema.priorities.map(value => (
+								<SelectItem key={value} value={value}>
+									{value}
+								</SelectItem>
+							))}
+						</SelectGroup>
+					</SelectField>
+				</div>
+			) : null}
 			<Table>
 				<TableHeader className="sr-only">
 					{table.getHeaderGroups().map(headerGroup => (

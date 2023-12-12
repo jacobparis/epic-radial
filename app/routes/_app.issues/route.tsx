@@ -7,12 +7,14 @@ import {
 	json,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
+	redirect,
 } from '@remix-run/node'
 import { Outlet, useLoaderData, useFetcher, Link } from '@remix-run/react'
 import { useCallback } from 'react'
 import { z } from 'zod'
 import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
+import { clearEmptyParams } from '#app/utils/misc.tsx'
 import { IssueFilterSchema, FilterBar } from './IssueFilterSchema.tsx'
 import { IssuesTable } from './IssuesTable.tsx'
 import { PaginationBar } from './PaginationBar.tsx'
@@ -140,6 +142,7 @@ export function useBulkEditIssues() {
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url)
+	await clearEmptyParams(url)
 
 	const submission = parse(url.searchParams, {
 		schema: IssueFilterSchema.merge(IssuePaginationSchema).partial(),
@@ -150,10 +153,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		throw new Error('Invalid submission')
 	}
 
+	if (submission.value.removeId && submission.value.id) {
+		const remainingIds = submission.value.id.filter(
+			id => !submission.value?.removeId?.includes(id),
+		)
+
+		url.searchParams.delete('id')
+		url.searchParams.delete('removeId')
+		for (const id of remainingIds) {
+			url.searchParams.append('id', String(id))
+		}
+
+		return redirect(url.toString())
+	}
+
 	const $top = submission.value.$top ?? 10
 	const $skip = submission.value.$skip || 0
 
 	const where: Prisma.IssueWhereInput = {
+		id: submission.value.id ? { in: submission.value.id } : undefined,
 		title: {
 			contains: submission.value.title ?? undefined,
 		},

@@ -1,3 +1,4 @@
+import { redirect } from '@remix-run/node'
 import { useFormAction, useNavigation } from '@remix-run/react'
 import { clsx, type ClassValue } from 'clsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -341,5 +342,18 @@ export async function downloadFile(url: string, retries: number = 0) {
 	} catch (e) {
 		if (retries > MAX_RETRIES) throw e
 		return downloadFile(url, retries + 1)
+	}
+}
+
+export async function clearEmptyParams(url: URL) {
+	let shouldRedirect = false
+	for (const [key, value] of url.searchParams.entries()) {
+		if (value === '') {
+			url.searchParams.delete(key)
+			shouldRedirect = true
+		}
+	}
+	if (shouldRedirect) {
+		throw redirect(url.toString())
 	}
 }
