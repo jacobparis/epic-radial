@@ -198,7 +198,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			id: 'asc',
 		},
 		skip: $skip,
-		take: $top || undefined,
+		take: $top * 2 || undefined,
 	})
 
 	return json({
@@ -221,7 +221,7 @@ export default function Dashboard() {
 			<div className="bg-white">
 				<FilterBar />
 
-				<IssuesTable data={issues} issueIds={issueIds} />
+				<IssuesTable issues={issues} issueIds={issueIds} pageSize={$top} />
 
 				<div className="flex justify-between p-2">
 					{$top ? <PaginationBar total={issueIds.length} /> : null}

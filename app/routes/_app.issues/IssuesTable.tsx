@@ -10,7 +10,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Checkbox } from '#app/components/ui/checkbox.tsx'
@@ -25,7 +25,7 @@ import {
 } from '#app/components/ui/table.tsx'
 import { useRootLoaderData } from '#app/root.tsx'
 import { ExistingParams } from './ExistingParams.tsx'
-import { useBulkDeleteIssues, useBulkEditIssues } from './route.tsx'
+import { useBulkDeleteFetcher, useBulkEditFetcher } from './route.tsx'
 
 type IssueRow = Pick<
 	SerializeFrom<Issue>,
@@ -112,21 +112,65 @@ export const columns: Array<ColumnDef<IssueRow>> = [
 	},
 ]
 
+let runawayRenders = 1000
+
 export function IssuesTable({
-	data,
+	issues,
+	pageSize,
 	issueIds,
 }: {
-	data: Array<IssueRow>
+	issues: Array<IssueRow>
+	pageSize: number
 	issueIds: Array<number>
 }) {
+	if (runawayRenders-- <= 0) {
+		throw new Error('Runaway renders')
+	}
+	const pageIssues = useMemo(
+		() => issues.slice(0, pageSize),
+		[issues, pageSize],
+	)
+	const extraIssues = useMemo(() => issues.slice(pageSize), [issues, pageSize])
 	const [rowSelection, setRowSelection] = useState({})
-	const table = useReactTable<(typeof data)[number]>({
+
+	const bulkDeleteFetcher = useBulkDeleteFetcher()
+	const bulkEditFetcher = useBulkEditFetcher()
+
+	const memoizedData = useMemo(() => {
+		return pageIssues
+			.filter(issue => {
+				if (bulkDeleteFetcher.json?.issues.includes(issue.id)) {
+					return false
+				}
+
+				return true
+			})
+			.map(issue => {
+				if (bulkEditFetcher.json?.issues.includes(issue.id)) {
+					return {
+						...issue,
+						...bulkEditFetcher.json.changeset,
+					}
+				}
+
+				return issue
+			})
+			.concat(extraIssues.slice(0, bulkDeleteFetcher?.json?.issues.length ?? 0))
+	}, [
+		pageIssues,
+		extraIssues,
+		bulkDeleteFetcher.json?.issues,
+		bulkEditFetcher.json?.issues,
+		bulkEditFetcher.json?.changeset,
+	])
+
+	const table = useReactTable<(typeof issues)[number]>({
 		state: {
 			rowSelection,
 		},
 		enableRowSelection: true,
 		onRowSelectionChange: setRowSelection,
-		data,
+		data: memoizedData,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 		getRowId(row) {
@@ -136,8 +180,6 @@ export function IssuesTable({
 
 	const navigate = useNavigate()
 
-	const bulkDeleteIssues = useBulkDeleteIssues()
-	const bulkEditIssues = useBulkEditIssues()
 	const { schema } = useRootLoaderData()
 
 	return (
@@ -147,14 +189,14 @@ export function IssuesTable({
 					{Object.keys(rowSelection).length} selected
 				</span>
 
-				{data.some(({ id }) => !(id in rowSelection)) ? (
+				{pageIssues.some(({ id }) => !(id in rowSelection)) ? (
 					<Button
 						variant="outline"
 						onClick={() => {
 							table.setRowSelection(existingSelection => {
 								const selection = { ...existingSelection }
 
-								for (const row of data) {
+								for (const row of pageIssues) {
 									selection[row.id] = true
 								}
 
@@ -216,7 +258,7 @@ export function IssuesTable({
 					<Button
 						variant="outline"
 						onClick={() => {
-							bulkDeleteIssues({
+							bulkDeleteFetcher.submit({
 								issues: Object.keys(rowSelection).map(id => Number(id)),
 							})
 							table.resetRowSelection()
@@ -229,7 +271,7 @@ export function IssuesTable({
 						placeholder="Change priority"
 						inputProps={{
 							onValueChange(value: (typeof schema.priorities)[number]) {
-								bulkEditIssues({
+								bulkEditFetcher.submit({
 									issues: table
 										.getSelectedRowModel()
 										.rows.map(row => row.original.id),
