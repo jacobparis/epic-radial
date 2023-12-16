@@ -9,40 +9,30 @@ import {
 	type ActionFunctionArgs,
 	redirect,
 } from '@remix-run/node'
-import { Outlet, useLoaderData, useFetcher, Link } from '@remix-run/react'
-import { useCallback } from 'react'
+import { Outlet, useLoaderData, Link } from '@remix-run/react'
 import { z } from 'zod'
 import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { clearEmptyParams } from '#app/utils/misc.tsx'
+import { bulkDelete, BulkDeleteSchema } from './bulkDelete.tsx'
+import { bulkEdit, BulkEditSchema } from './bulkEdit.tsx'
 import { IssueFilterSchema, FilterBar } from './IssueFilterSchema.tsx'
 import { IssuesTable } from './IssuesTable.tsx'
 import { PaginationBar } from './PaginationBar.tsx'
 import { PaginationLimitSelect } from './PaginationLimitSelect.tsx'
-
-const BulkDeleteSchema = z.object({
-	[conform.INTENT]: z.literal('delete'),
-	issues: z.array(z.number()),
-})
-
-const BulkEditSchema = z.object({
-	[conform.INTENT]: z.literal('edit'),
-	issues: z.array(z.number()),
-	changeset: z
-		.object({
-			priority: z.string(),
-		})
-		.partial(),
-})
 
 const BulkSchema = z.discriminatedUnion(conform.INTENT, [
 	BulkEditSchema,
 	BulkDeleteSchema,
 ])
 
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 export async function action({ request, params }: ActionFunctionArgs) {
 	const formData = await request.json()
 	const submission = BulkSchema.safeParse(formData)
+
+	await wait(2000)
 
 	if (!submission.success) {
 		return json({ status: 'error', submission } as const, { status: 400 })
@@ -52,29 +42,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	if (submission.data[conform.INTENT] === 'delete') {
-		await prisma.issue.deleteMany({
-			where: {
-				id: {
-					in: submission.data.issues,
-				},
-			},
-		})
+	if (submission.data.__intent__ === 'delete') {
+		await bulkDelete(submission.data)
 
 		return json({ success: true, submission })
 	}
 
 	if (submission.data[conform.INTENT] === 'edit') {
-		await prisma.issue.updateMany({
-			where: {
-				id: {
-					in: submission.data.issues,
-				},
-			},
-			data: {
-				priority: submission.data.changeset.priority ?? undefined,
-			},
-		})
+		await bulkEdit(submission.data)
 
 		return json({ success: true, submission })
 	}
@@ -88,56 +63,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		} as const,
 		{ status: 405 },
 	)
-}
-
-export function useBulkDeleteIssues() {
-	const fetcher = useFetcher()
-	const submit = useCallback(
-		({
-			issues,
-		}: Omit<z.infer<typeof BulkDeleteSchema>, typeof conform.INTENT>) => {
-			fetcher.submit(
-				{
-					[conform.INTENT]: 'delete',
-					issues,
-				},
-				{
-					method: 'POST',
-					action: '/issues',
-					encType: 'application/json',
-				},
-			)
-		},
-		[fetcher],
-	)
-
-	return submit
-}
-
-export function useBulkEditIssues() {
-	const fetcher = useFetcher()
-	const submit = useCallback(
-		({
-			issues,
-			changeset,
-		}: Omit<z.infer<typeof BulkEditSchema>, typeof conform.INTENT>) => {
-			fetcher.submit(
-				{
-					[conform.INTENT]: 'edit',
-					issues,
-					changeset,
-				},
-				{
-					method: 'POST',
-					action: '/issues',
-					encType: 'application/json',
-				},
-			)
-		},
-		[fetcher],
-	)
-
-	return submit
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -204,7 +129,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return json({
 		$top,
 		issueIds: issueIds.map(issue => issue.id),
-		issues,
+		issues: issues,
 	})
 }
 

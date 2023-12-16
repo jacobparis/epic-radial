@@ -24,8 +24,9 @@ import {
 	TableRow,
 } from '#app/components/ui/table.tsx'
 import { useRootLoaderData } from '#app/root.tsx'
+import { useBulkDeleteFetcher } from './bulkDelete.tsx'
+import { useBulkEditFetcher } from './bulkEdit.tsx'
 import { ExistingParams } from './ExistingParams.tsx'
-import { useBulkDeleteFetcher, useBulkEditFetcher } from './route.tsx'
 
 type IssueRow = Pick<
 	SerializeFrom<Issue>,
