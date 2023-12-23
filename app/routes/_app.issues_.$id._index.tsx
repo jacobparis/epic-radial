@@ -9,6 +9,8 @@ import {
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 
+import { useRef } from 'react'
+import { useDebounceSubmit } from 'remix-utils/use-debounce-submit'
 import { z } from 'zod'
 import { ErrorList, SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -18,7 +20,7 @@ import { Textarea } from '#app/components/ui/textarea.tsx'
 import { useRootLoaderData } from '#app/root.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 
-import { invariant } from '#app/utils/misc.tsx'
+import { invariant, wait } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 
 const EditIssueSchema = z.object({
@@ -30,6 +32,8 @@ const EditIssueSchema = z.object({
 
 export async function action({ request, params }: ActionFunctionArgs) {
 	invariant(params.id, 'Missing issue ID')
+
+	await wait(5000)
 
 	const formData = await request.formData()
 	const submission = parse(formData, {
@@ -95,11 +99,13 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 	return json({ issue })
 }
-
 export default function Issue() {
 	const { issue } = useLoaderData<typeof loader>()
 
 	const actionData = useActionData<typeof action>()
+	const saveButton = useRef<HTMLButtonElement>(null)
+
+	const submit = useDebounceSubmit()
 
 	const [form, fields] = useForm({
 		id: 'edit-issue-form',
@@ -163,6 +169,25 @@ export default function Issue() {
 					className="border-none bg-transparent text-lg font-medium placeholder:text-gray-400"
 					placeholder="Issue title"
 					{...conform.input(fields.title)}
+					onClick={e => {
+						if (!window.getSelection()?.toString()) {
+							e.currentTarget.select()
+						}
+					}}
+					onChange={e => {
+						submit(saveButton.current, {
+							navigate: false,
+							fetcherKey: 'edit-issue-title',
+							debounceTimeout: 500,
+						})
+					}}
+					onBlur={e => {
+						submit(saveButton.current, {
+							navigate: false,
+							fetcherKey: 'edit-issue-title',
+							debounceTimeout: 0,
+						})
+					}}
 				/>
 				<div className="px-3">
 					<ErrorList errors={fields.title.errors} id={fields.title.errorId} />
@@ -173,6 +198,20 @@ export default function Issue() {
 					placeholder="Add a description…"
 					className="mt-2 border-none bg-transparent placeholder:text-gray-400"
 					{...conform.input(fields.description)}
+					onChange={e => {
+						submit(saveButton.current, {
+							navigate: false,
+							fetcherKey: 'edit-issue-description',
+							debounceTimeout: 500,
+						})
+					}}
+					onBlur={e => {
+						submit(saveButton.current, {
+							navigate: false,
+							fetcherKey: 'edit-issue-description',
+							debounceTimeout: 0,
+						})
+					}}
 				/>
 				<div className="px-3">
 					<ErrorList
@@ -192,7 +231,12 @@ export default function Issue() {
 					Delete
 				</Button>
 
-				<Button type="submit" name={conform.INTENT} value="edit">
+				<Button
+					ref={saveButton}
+					type="submit"
+					name={conform.INTENT}
+					value="edit"
+				>
 					Save
 				</Button>
 			</div>

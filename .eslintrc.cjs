@@ -11,6 +11,7 @@ module.exports = {
 		'prettier',
 	],
 	rules: {
+		'react-hooks/exhaustive-deps': 'error',
 		'no-template-curly-in-string': 'off',
 		// playwright requires destructuring in fixtures even if you don't use anything 🤷‍♂️
 		'no-empty-pattern': 'off',
