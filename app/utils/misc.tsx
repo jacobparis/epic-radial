@@ -357,3 +357,5 @@ export async function clearEmptyParams(url: URL) {
 		throw redirect(url.toString())
 	}
 }
+export const wait = (ms: number) =>
+	new Promise(resolve => setTimeout(resolve, ms))

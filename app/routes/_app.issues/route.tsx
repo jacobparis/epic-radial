@@ -13,7 +13,7 @@ import { Outlet, useLoaderData, Link } from '@remix-run/react'
 import { z } from 'zod'
 import { Button } from '#app/components/ui/button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
-import { clearEmptyParams } from '#app/utils/misc.tsx'
+import { clearEmptyParams, wait } from '#app/utils/misc.tsx'
 import { bulkDelete, BulkDeleteSchema } from './bulkDelete.tsx'
 import { bulkEdit, BulkEditSchema } from './bulkEdit.tsx'
 import { IssueFilterSchema, FilterBar } from './IssueFilterSchema.tsx'
@@ -25,8 +25,6 @@ const BulkSchema = z.discriminatedUnion(conform.INTENT, [
 	BulkEditSchema,
 	BulkDeleteSchema,
 ])
-
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export async function action({ request, params }: ActionFunctionArgs) {
 	const formData = await request.json()
