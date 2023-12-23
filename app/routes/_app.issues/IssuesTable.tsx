@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { useMemo, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { SelectField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Checkbox } from '#app/components/ui/checkbox.tsx'
@@ -183,27 +184,64 @@ export function IssuesTable({
 
 	const { schema } = useRootLoaderData()
 
+	const selectPage = () => {
+		table.setRowSelection(existingSelection => {
+			const selection = { ...existingSelection }
+
+			for (const row of pageIssues) {
+				selection[row.id] = true
+			}
+
+			return selection
+		})
+	}
+
+	const selectAll = () => {
+		table.setRowSelection(existingSelection => {
+			const selection = { ...existingSelection }
+
+			for (const id of issueIds) {
+				selection[id] = true
+			}
+
+			return selection
+		})
+	}
+
+	const isCurrentPageSelected = memoizedData.every(
+		row => row.id in rowSelection,
+	)
+	const isAllSelected = issueIds.length === Object.keys(rowSelection).length
+
+	useHotkeys('meta+a', event => {
+		event.preventDefault()
+
+		if (isCurrentPageSelected) {
+			selectAll()
+		} else {
+			selectPage()
+		}
+	})
+
+	useHotkeys('meta+shift+a', event => {
+		event.preventDefault()
+
+		table.resetRowSelection()
+	})
+
 	return (
 		<div className="text-left">
 			<div className="flex items-center gap-x-4 p-2">
 				<span className="inline-flex h-8 items-center justify-center gap-x-2 p-2 text-sm tabular-nums text-gray-600">
 					<Checkbox
-						checked={memoizedData.every(row => row.id in rowSelection)}
+						checked={isCurrentPageSelected}
 						onCheckedChange={() => {
-							if (memoizedData.every(row => row.id in rowSelection)) {
+							if (isCurrentPageSelected) {
 								table.resetRowSelection()
 								return
 							}
 
-							table.setRowSelection(existingSelection => {
-								const selection = { ...existingSelection }
-
-								for (const row of pageIssues) {
-									selection[row.id] = true
-								}
-
-								return selection
-							})
+							selectPage()
 						}}
 						aria-label={`${Object.keys(rowSelection).length} selected`}
 					/>
@@ -227,7 +265,7 @@ export function IssuesTable({
 					</>
 				) : null}
 
-				{issueIds.length === Object.keys(rowSelection).length ? (
+				{isAllSelected ? (
 					<Button
 						variant="link"
 						onClick={() => {
@@ -240,15 +278,7 @@ export function IssuesTable({
 					<Button
 						variant="link"
 						onClick={() => {
-							table.setRowSelection(existingSelection => {
-								const selection = { ...existingSelection }
-
-								for (const id of issueIds) {
-									selection[id] = true
-								}
-
-								return selection
-							})
+							selectAll()
 						}}
 					>
 						Select all {issueIds.length}
@@ -342,9 +372,13 @@ export function IssuesTable({
 											// Don't navigate if this is a checkbox
 											if (cell.column.id === 'select') return
 
+											if (event.metaKey) {
+												row.toggleSelected()
+												return
+											}
+
 											// Don't navigate if other checkboxes are clicked
 											if (table.getIsSomeRowsSelected()) return
-
 											navigate(`/issues/${row.original.id}`)
 										}}
 									>

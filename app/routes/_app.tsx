@@ -1,8 +1,15 @@
-import { Link, NavLink, Outlet } from '@remix-run/react'
+import { Link, NavLink, Outlet, useNavigate } from '@remix-run/react'
 import clsx from 'clsx'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { Button } from '#app/components/ui/button.tsx'
 
 export default function AppLayout() {
+	const navigate = useNavigate()
+
+	useHotkeys('n', () => {
+		navigate('/issues/new')
+	})
+
 	return (
 		<div className="flex">
 			<div className="flex min-h-screen min-w-[20ch] flex-col gap-y-1  border-r border-neutral-100 bg-white p-2">
@@ -11,6 +18,7 @@ export default function AppLayout() {
 				</Button>
 				<NavItem to="/">Home</NavItem>
 				<NavItem to="/issues">Issues</NavItem>
+				<NavItem to="/shortcuts">Shortcuts</NavItem>
 			</div>
 			<div className="grow">
 				<Outlet />
