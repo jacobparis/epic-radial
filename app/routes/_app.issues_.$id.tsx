@@ -1,7 +1,14 @@
 // http://localhost:3000/issues/1
 
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { Link, Outlet, useLoaderData, useParams } from '@remix-run/react'
+import {
+	Link,
+	Outlet,
+	useLoaderData,
+	useNavigate,
+	useParams,
+} from '@remix-run/react'
+import { useHotkeys } from 'react-hotkeys-hook'
 
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -29,9 +36,30 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 	return json({ issue })
 }
-
 export default function Issue() {
 	const { issue } = useLoaderData<typeof loader>()
+	const navigate = useNavigate()
+	useHotkeys(
+		'esc',
+		() => {
+			;(document.activeElement as HTMLInputElement)?.blur()
+		},
+		{
+			enableOnContentEditable: true,
+		},
+	)
+
+	useHotkeys('g i', () => {
+		navigate('/issues')
+	})
+
+	useHotkeys('j', () => {
+		navigate(`/issues/${issue.id}/prev`)
+	})
+
+	useHotkeys('k', () => {
+		navigate(`/issues/${issue.id}/next`)
+	})
 
 	return (
 		<div className="min-h-full max-w-4xl bg-white" key={issue.id}>
