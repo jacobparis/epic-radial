@@ -186,14 +186,15 @@ export function IssuesTable({
 	return (
 		<div className="text-left">
 			<div className="flex items-center gap-x-4 p-2">
-				<span className="h-8 p-2 text-sm tabular-nums text-gray-600">
-					{Object.keys(rowSelection).length} selected
-				</span>
+				<span className="inline-flex h-8 items-center justify-center gap-x-2 p-2 text-sm tabular-nums text-gray-600">
+					<Checkbox
+						checked={memoizedData.every(row => row.id in rowSelection)}
+						onCheckedChange={() => {
+							if (memoizedData.every(row => row.id in rowSelection)) {
+								table.resetRowSelection()
+								return
+							}
 
-				{pageIssues.some(({ id }) => !(id in rowSelection)) ? (
-					<Button
-						variant="outline"
-						onClick={() => {
 							table.setRowSelection(existingSelection => {
 								const selection = { ...existingSelection }
 
@@ -204,40 +205,13 @@ export function IssuesTable({
 								return selection
 							})
 						}}
-					>
-						Select page
-					</Button>
-				) : (
-					<Button
-						variant="outline"
-						disabled={issueIds.length === Object.keys(rowSelection).length}
-						onClick={() => {
-							table.setRowSelection(existingSelection => {
-								const selection = { ...existingSelection }
-
-								for (const id of issueIds) {
-									selection[id] = true
-								}
-
-								return selection
-							})
-						}}
-					>
-						Select all
-					</Button>
-				)}
+						aria-label={`${Object.keys(rowSelection).length} selected`}
+					/>
+					{`${Object.keys(rowSelection).length} selected`}
+				</span>
 
 				{Object.keys(rowSelection).length > 0 ? (
 					<>
-						<Button
-							variant="outline"
-							onClick={() => {
-								table.resetRowSelection()
-							}}
-						>
-							Deselect
-						</Button>
-
 						<Form method="GET">
 							<ExistingParams
 								exclude={['$skip', '$top', 'title', 'status', 'priority', 'id']}
@@ -252,6 +226,34 @@ export function IssuesTable({
 						</Form>
 					</>
 				) : null}
+
+				{issueIds.length === Object.keys(rowSelection).length ? (
+					<Button
+						variant="link"
+						onClick={() => {
+							table.resetRowSelection()
+						}}
+					>
+						Clear selection
+					</Button>
+				) : (
+					<Button
+						variant="link"
+						onClick={() => {
+							table.setRowSelection(existingSelection => {
+								const selection = { ...existingSelection }
+
+								for (const id of issueIds) {
+									selection[id] = true
+								}
+
+								return selection
+							})
+						}}
+					>
+						Select all {issueIds.length}
+					</Button>
+				)}
 			</div>
 
 			{Object.keys(rowSelection).length > 0 ? (
